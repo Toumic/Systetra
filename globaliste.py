@@ -20,18 +20,19 @@ def globe(glob):
         # union {'1234': '1234', '12304': '12304', (dico tous les téras), ...} 28
         # ponton {'1234': '1234', (dico les tétras communs aux inf/sup), ...} 9
         # super {'1002034': '1002034', (dicos seuls les tétras supérieurs), ...} 5
+        # infer {'12304': '12304', '123004': '123004', '12300004': '12300004', ...] 14
         # t_global['1234'] | '1234': ['o45x.1234000005678.inf', 'o45x.1234000005678.sup', ...]
             * Le dico t_global indexe à chacune de ses clés, les gammes qui possèdent ces clés."""
     ("\n", lineno(), "glob :", glob.keys(), "\n")
-    #  25 glob : dict_keys(['t_inf', 't_sup', 't_global', 'union_t', 'ponton_t', 'super_t', 'infer_t', 't_ordre'])
+    "#  26 glob : dict_keys(['t_inf', 't_sup', 't_global', 'union_t', 'ponton_t', 'super_t', 'infer_t', 't_ordre'])"
 
     "# Structurer la lecture de t_global"
     "# Création d'un dictionnaire global interne i_global."
     i_global = {}  # La trilogie du tétracorde = [nom_gamme énumérée_position]
     "# La liste des clés de glob['t_global']."
     k_global = glob['t_global'].keys()
-    (lineno(), "k_global", k_global)
-    # 29 k_global dict_keys(['1234', '120034', '102034', '100234', '1002034', '10002034', ...]
+    (lineno(), "k_global", k_global, len(k_global))
+    # 29 k_global dict_keys(['1234', '120034', '102034', '100234', '1002034', '10002034', ...] 28
     valeurs, v = {}, 0  # Dictionnaire pour les trois valeurs, compteur tétra utiles.
     t_double = {}  # Dico des tétras en double dans une seule gamme.
     v_noms = {}  # Dico à clefs = tétra et valeurs = noms.
@@ -65,9 +66,31 @@ def globe(glob):
                 t_double[k_glob] = ""
                 if a not in t_double[k_glob]:
                     t_double[k_glob] = a
-        (lineno(), "Doublons de a", a, t_double)
-        # 68 Doublons de a +26 {'1234': 'o45x', '120034': '-26', '102034': '0', '100234': '+26'}
+            (lineno(), "Doublons de a", a, t_double)
+            # 68 Doublons de a +26 {'1234': 'o45x', '120034': '-26', '102034': '0', '100234': '+26'}
     (lineno(), " * valeurs", valeurs)
+
+    ("# Positionner graphiquement les notes des tétras par rapport au tétra naturellement majeur."
+     "Le dico dic_tet_maj, clé = tétra, valeur = signe, position, longueur.")
+    tet_maj, cnt_tm = "102034", 0  # Version positions réelles = [1, 3, 5, 6]
+    dic_tet_maj = {}  # Dico, clef = tétra, valeur = positionnement élémentaire.
+    for kg in k_global:
+        dic_tet_maj[kg] = []
+        tet_sig, tet_pos, cnt_pos = [], [], 0
+        cnt_tm += 1
+        (lineno(), "kg", kg)
+        for k in kg:
+            cnt_pos += 1
+            if k != "0":
+                pos_m = tet_maj.index(k)
+                pos_k = kg.index(k)
+                dif_pos = pos_k - pos_m
+                tet_sig.append(dif_pos)
+                tet_pos.append(cnt_pos)
+                (lineno(), "k", k, "pos", pos_m, pos_k, "dif_pos", dif_pos)
+        dic_tet_maj[kg] = tet_sig, tet_pos, len(kg)
+        (lineno(), "dic_tet_maj", kg, dic_tet_maj[kg], "\t\tcnt_tm", cnt_tm)
+        # 92 dic_tet_maj 10000234 ([0, 3, 2, 2], [1, 6, 7, 8], 8) 		cnt_tm 28
 
 
     def go_inf(t_val, t_duo, f_val):
@@ -213,57 +236,148 @@ def globe(glob):
         # 214 dict_tet [('100234', '1002345006078', '1002034')]
 
     "# Visualiser toutes les composantes du dictionnaire : dict_tet."
-    k_ = dict_tet.keys()
+    k_ = list(dict_tet.keys())
     quantetra_lis = []  #, quantetra_lis = liste des quantités
     quantetra_key = k_.copy()  #, quantetra_key = liste des clefs tétras
+    dict_miroir_org = {
+        "miror" : {},  # Le tétra devant un miroir à effet symétrique
+        "clone" : {},  # Le tétra se répète à l'identique
+        "symet" : {},  # Le tétra est symétrique à lui-même
+    }  # Dico, clef = tétra et valeur = couple tétra aux valeurs symétriques.
     for k in k_:
         quantetra_lis.append(len(dict_tet[k]))  #, q_lis = liste des quantités.
         (lineno(), "k", k, "dict_tet", dict_tet[k], len(dict_tet[k]))
-        # 221 k 1234 dict_tet [('1234', '1234000005678', '1234'), ('1234', '1234000560078', '120034')... ] 17
+        # 249 k 10000234 dict_tet [('100234', '1000023456078', '12034')] 1
+
+        ("# Traitement de l'image tétra."
+         "data = ['203040', '000000', '123456']"
+         "resultat = list(map(lambda x: ''.join(['-' if c == '0' else '0' for c in x]), data))"
+         "resultat = ''.join(map(lambda x: ''.join(['-' if c == '0' else '0' for c in x]), data))")
+        # Former l'image de la clé
+        k_cop = k
+        k_rec = list(k_cop)
+        k_rec.reverse()
+        k_ver = "".join(str(x) for x in k_rec)
+        ima_recto = ''.join(map(lambda x: ''.join(['-' if c == '0' else '0' for c in x]), k_cop))
+        ima_verso = ''.join(map(lambda x: ''.join(['-' if c == '0' else '0' for c in x]), k_ver))
+        print(lineno(), "k", k, "k_cop", k_cop, ima_recto, "k_ver", k_ver, ima_verso)
+        if len(dict_tet[k]) == 1:
+            dtk = dict_tet[k]
+            print(lineno(), "k", k, "=  dtk", dtk)
+        else:
+            for dtk in dict_tet[k]:
+                print(lineno(), "k", k, ">  dtk", dtk, type(k))
+        (lineno(), "k", k, "k_rec", k_rec, "k_ver", k_ver)
+        # break
+
     (lineno(), "dict_tet", dict_tet, len(k_))
-    # 223 dict_tet {'1234': [('1234', '1234000005678', '1234'), ('1234', '1234000560078', '120034')...]} 28
+    # 253 dict_tet {'1234': [('1234', '1234000005678', '1234'), ('1234', '1234000560078', '120034')...]} 28
 
     ("# Création d'un dictionnaire dont la clé est la quantité des gammes réunies et la valeur sont les tétras."
      "Quand il y a plusieurs fois une même quantité, on crée des repères indiquants le fait, le reste n'est pas fait."
      "  En utilisant :"
      "      , quantetra_ord : commence par les plus grosses entités"
      "      , quantetra_lis : classement original de la liste des quantités"
-     "      , quantetra_key : classement original des clés de la liste tétra")
-    quantetra_dic, quantetra_ord = {}, []  # , q_ord = liste triée des quantités.
-    quantetra_ord = quantetra_lis.copy()  #, quantetra_lis = liste des quantités
+     "      , quantetra_key : classement original des clés de la liste tétra"
+     "      , quant_suite   : liste de suivi pour les quantités en doublon")
+    quantetra_dic = {}  # , quantetra_dic = dico, clef = tetra, valeur = liste des tétras.
+    quantetra_ord = quantetra_lis.copy()  #, quantetra_lis = liste des quantités.
     quantetra_ord.sort()  # , q_ord est trié en ordre croissant.
     quantetra_ord.reverse()  # ' q_ord est inversé, il commence par les plus grosses entités.
-    print(lineno(), "Les quantités", quantetra_ord)
-    # 231 Les quantités [18, 17, 12, 12, 11, 11, 7, 5, 5, 4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    (lineno(), "Les quantités\t", quantetra_ord, "\n\t\t\t\t\t", quantetra_lis)
+    # 260 Les quantités  [18, 17, 12, 12, 11, 11, 7, 5, 5, 4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    # 					 [17, 11, 18, 11, 7, 4, 1, 2, 5, 12, 1, 1, 3, 12, 1, 3, 5, 1, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1]
+    quant_suite = []
+    for qtt in quantetra_ord:
+        if quantetra_ord.count(qtt) == 1:
+            ind_qtt = quantetra_lis.index(qtt)
+            quantetra_dic[quantetra_key[ind_qtt]] = dict_tet[quantetra_key[ind_qtt]]
+            (lineno(), "qtt", qtt, "ind_qtt", ind_qtt, "quantetra_dic", quantetra_dic[quantetra_key[ind_qtt]])
+            # 244 qtt 18 ind_qtt 2 quantetra_dic [('102034', '1020340506078', '102034')...]
+        else:
+            cnt = -1
+            for c_qtt in quantetra_lis:
+                cnt += 1
+                if qtt == c_qtt and quantetra_key[cnt] not in quant_suite:
+                    quant_suite.append(quantetra_key[cnt])
+                    quantetra_dic[quantetra_key[cnt]] = dict_tet[quantetra_key[cnt]]
+                    (lineno(), cnt, "Q", qtt, c_qtt, "dict_tet", dict_tet[quantetra_key[cnt]][0])
+                    break
+    ("\n", lineno(), "quantetra_dic", quantetra_dic, len(quantetra_dic.keys()))
+    # 256 quantetra_dic {'102034': [('102034', '1020340506078', '102034')...]} 28
 
     ("# Assimilation des liaisons entre les tétras (inversions incluses)."
      "Clarification par absence des doublons, une avancée constructive interrelationnelle.")
     dict_relate_org = {}  # Dico, clef = tétra et valeur = couple tétra, selon l'organisation originale.
-    list_memore, k1_, k2_ = [], [], []  # Liste des couples déjà visités et variables poncteuelles.
-    # Lecture de dict_tet pour assembler les duos tétracordiques des gammes primordiales.
-    for clef in k_:
-        dict_relate_org[clef] = []  # Déclaration de la clef tétra utile.
-        k1 = dict_tet[clef]
-        if len(k1) > 1:
-            for k2 in k1:
-                k2_ = [k2[0], k2[2]]
-                k2r = k2_.copy()
-                k2r.reverse()
-                if k2_ not in list_memore and k2r not in list_memore:
-                    list_memore.append(k2_)
-                    dict_relate_org[clef].append(k2_)
-            (lineno(), "clef", clef, "dict_relate_org", dict_relate_org[clef], "\t", len(dict_relate_org[clef]))
-            # 242 clef 1234 dict_relate_org [['1234', '1234'], ['1234', '120034'], ['1234', '102034']...]  15
-        else:
-            k1_ = [k1[0][0], k1[0][2]]
-            k1r = k1_.copy()
-            if k1_ not in list_memore and k1r not in list_memore:
-                list_memore.append(k1_)
-                dict_relate_org[clef].append(k1_)
+    dict_relate_ord = {}  # Dico, clef = tétra et valeur = couple tétra, selon l'organisation ordonnée.
+
+    "# Assemblage des deux dictionnaires pour obtenir deux dimensions des liaisons tétras."
+    select_ord = list(dict_tet.keys()), list(quantetra_dic.keys())
+
+    "# Lecture de la liste contenant les deux dictionnaires"
+    cnt_dic = 0
+    for so in select_ord:
+        k_ = so
+        list_memore, k1_, k2_ = [], [], []  # Liste des couples déjà visités et variables poncteuelles.
+        # Lecture de dict_tet pour assembler les duos tétracordiques des gammes primordiales.
+        for clef in k_:
+            dict_relate_org[clef] = []  # Déclaration de la clef tétra utile.
+            dict_relate_ord[clef] = []  # Déclaration de la clef tétra utile.
+            k1 = dict_tet[clef]
+            if len(k1) > 1:
+                for k2 in k1:
+                    k2_ = [k2[0], k2[2]]
+                    k2r = k2_.copy()
+                    k2r.reverse()
+                    if k2_ not in list_memore and k2r not in list_memore:
+                        list_memore.append(k2_)
+                        if cnt_dic == 0:
+                            dict_relate_org[clef].append(k2_)
+                        else:
+                            dict_relate_ord[clef].append(k2_)
                 (lineno(), "clef", clef, "dict_relate_org", dict_relate_org[clef], "\t", len(dict_relate_org[clef]))
-                # 250 clef 12300004 dict_relate_org [['100234', '12034']] 	 1
-        if dict_relate_org[clef]:
-            print(lineno(), "dict_relate_org", dict_relate_org[clef], "\t", len(dict_relate_org[clef]))
+                # 242 clef 1234 dict_relate_org [['1234', '1234'], ['1234', '120034'], ['1234', '102034']...]  15
+            else:
+                k1_ = [k1[0][0], k1[0][2]]
+                k1r = k1_.copy()
+                if k1_ not in list_memore and k1r not in list_memore:
+                    list_memore.append(k1_)
+                    if cnt_dic == 0:
+                        dict_relate_org[clef].append(k1_)
+                        dro = dict_relate_org[clef]
+                        (lineno(), "clef", clef, "dict_relate_org", dro, "\t", len(dro))
+                        # 250 clef 12300004 dict_relate_org [['100234', '12034']] 	 1
+                    else:
+                        dict_relate_ord[clef].append(k1_)
+
+            if cnt_dic == 0:
+                if dict_relate_org[clef]:
+                    (lineno(), "dict_relate_org", dict_relate_org[clef], "\t", len(dict_relate_org[clef]))
+                else:
+                    del dict_relate_org[clef]
+            else:
+                if dict_relate_ord[clef]:
+                    (lineno(), "dict_relate_ord", dict_relate_ord[clef], "\t", len(dict_relate_ord[clef]))
+                else:
+                    del dict_relate_ord[clef]
+        if cnt_dic == 0:
+            ("\n", lineno(), "dict_relate_org", dict_relate_org, len(dict_relate_org.keys()))
+            # 351 quantetra_dic {'1234': [['1234', '1234'], ['1234', '120034'], ['1234', '102034']} 28
+        else:
+            ("\n", lineno(), "dict_relate_ord", dict_relate_ord, len(dict_relate_ord.keys()))
+            # 354 quantetra_dic {'1234': [['1234', '1234'], ['1234', '120034'], ['1234', '102034']} 28
+        cnt_dic += 1
+
+    "# Inventaire des acquis"
+    ("   Tétras total = union {'1234': '1234', '12304': '12304', '123004': '123004', ...] 28"
+     "   Tétras communs = ponton {'1234': '1234', '12034': '12034', '120034': '120034', ...] 9"
+     "   Tétras supérieurs uniques = super {'1002034': '1002034', '10002034': '10002034', ...] 5"
+     "   Tétras inférieurs uniques = infer {'12304': '12304', '123004': '123004', ...] 14"
+     "# Dictionnaires des liaisons inter-tétracordiques"
+     "   Dico : dict_relate_org, ordonnance originale"
+     "   Dico : dict_relate_ord, ordonnance ordonnée"
+     "# Dictionnaire des positions internes au tétras"
+     "   Dico : dic_tet_maj 102034 ([0, 0, 0, 0], [1, 3, 5, 6], 6)")
 
     "# Organisation et utilitaires :"
 

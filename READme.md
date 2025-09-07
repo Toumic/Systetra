@@ -33,12 +33,19 @@ _________________________________________________________
 Nous avons une topographie des tétras (inférieurs, supérieurs, communs, union).
 
 * **Les tétras inférieurs sont au nombre de vingt-trois.**
+* **Il y a quatorze tétras inférieurs uniques.**
 * **Les tétras supérieurs sont au nombre de quatorze.**
-* **Il y a neuf tétras communs à ceux des inférieurs et ceux des supérieurs.**
 * **Il y a cinq tétras supérieurs uniques.**
+* **Il y a neuf tétras communs à ceux des inférieurs et ceux des supérieurs.**
 * **Vingt-huit tétracordes composent les utilités musicales.**
 
 **Il y a plusieurs contextes à afficher, les sérialisations et les liens nominaux.** <br>
 
 
 # U
+prefixes = ("def", "class", "#", "import")
+
+with open("mon_script.py", "r", encoding="utf-8") as fichier:
+    for ligne in fichier:
+        if ligne.strip().startswith(prefixes):
+            print(ligne.strip())
